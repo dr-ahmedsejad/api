@@ -7,7 +7,7 @@ from .serializers import ArticleSerializer
 @api_view(['GET', 'POST'])
 def liste_articles(request):
     if request.method == 'GET':
-        articles = Article.objects.all()
+        articles = Article.objects.all().order_by('-date_publication')
         serializer = ArticleSerializer(articles, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -76,10 +76,6 @@ def detail_article(request, pk):
         })
 
     elif request.method == 'PUT':
-        if est_dans_groupe(request.user, ['Redacteurs']):
-            raise PermissionDenied(
-                "Les utilisateurs du groupe 'Redacteurs' ne peuvent pas modifier l'état de l'article.")
-
         serializer = ArticleSerializer(article, data=request.data)
         if serializer.is_valid():
             serializer.save()
