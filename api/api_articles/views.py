@@ -41,23 +41,6 @@ def detail_article(request, pk):
         return Response({"message": "Article supprimé avec succès"}, status=status.HTTP_200_OK)
 
 
-# from rest_framework.authentication import BasicAuthentication
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.decorators import api_view, authentication_classes, permission_classes
-# from rest_framework.response import Response
-# from .models import Article
-# from .serializers import ArticleSerializer
-#
-# @api_view(['GET', 'POST'])
-# @authentication_classes([BasicAuthentication])
-# @permission_classes([IsAuthenticated])
-# def liste_articles(request):
-#     if request.method == 'GET':
-#         articles = Article.objects.all()
-#         serializer = ArticleSerializer(articles, many=True)
-#         return Response(serializer.data)
-
-
 @api_view(['GET', 'PUT', 'DELETE'])
 def detail_article(request, pk):
     try:
