@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from .permission import IsRedacteur
 # from rest_framework import status
 # from .models import Article
 # from .serializers import ArticleSerializer
@@ -18,27 +19,9 @@ from rest_framework.response import Response
 #             return Response(serializer.data, status=status.HTTP_201_CREATED)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #
-# @api_view(['GET', 'PUT', 'DELETE'])
-# def detail_article(request, pk):
-#     try:
-#         article = Article.objects.get(pk=pk)
-#     except Article.DoesNotExist:
-#         return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
-#
-#     if request.method == 'GET':
-#         serializer = ArticleSerializer(article)
-#         return Response(serializer.data)
-#
-#     elif request.method == 'PUT':
-#         serializer = ArticleSerializer(article, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#     elif request.method == 'DELETE':
-#         article.delete()
-#         return Response({"message": "Article supprimé avec succès"}, status=status.HTTP_200_OK)
+from .permission import IsRedacteur,IsValidateur
+
+
 #
 #
 # @api_view(['GET', 'PUT', 'DELETE'])
@@ -74,17 +57,39 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Article
-from .serializers import ArticleSerializer, UserSerializer
+from .serializers import ArticleSerializer, UitilisateurSerializer
+# Importez votre classe de pagination personnalisée
+from .pagination import ArticlePageNumberPagination,ArticleLimitOffsetPagination
 
-
+# Le décorateur @api_view(['GET', 'POST']) spécifie que la vue accepte uniquement
+# les requêtes HTTP de type GET et POST. Toute autre méthode HTTP sera rejetée.
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsRedacteur])
+# Ici, deux vérifications de permissions sont appliquées :
+# 1. IsAuthenticated : l'utilisateur doit être authentifié (via JWT).
+# 2. IsRedacteur : l'utilisateur doit avoir le rôle "redacteur" (permission personnalisée).
 def liste_articles(request):
     if request.method == 'GET':
         articles = Article.objects.all().order_by('-date_publication')
-        serializer = ArticleSerializer(articles, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Suite du traitement...
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Article
+from rest_framework.permissions import IsAuthenticated
+from .permission import IsRedacteur,IsValidateur
+from .pagination import ArticlePageNumberPagination,ArticleLimitOffsetPagination
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated, IsRedacteur])
+def liste_articles(request):
+    if request.method == 'GET':
+        articles = Article.objects.all().order_by('-date_publication')
+        # Instanciation de la pagination
+        paginator = ArticlePageNumberPagination()
+        result_page = paginator.paginate_queryset(articles, request)
+        # Sérialisation de la page paginée
+        serializer = ArticleSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     elif request.method == 'POST':
         serializer = ArticleSerializer(data=request.data)
         if serializer.is_valid():
@@ -92,23 +97,72 @@ def liste_articles(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+# @api_view(['GET', 'POST'])
+# # @permission_classes([IsAuthenticated])
+# def liste_articles(request):
+#     if request.method == 'GET':
+#         articles = Article.objects.all().order_by('-date_publication')
+#         serializer = ArticleSerializer(articles, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+# 
+#     elif request.method == 'POST':
+#         serializer = ArticleSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# @api_view(['GET', 'PUT', 'DELETE'])
+# @permission_classes([IsAuthenticated, IsValidateur])
+# def detail_article(request, pk):
+#     try:
+#         article = Article.objects.get(pk=pk)
+#     except Article.DoesNotExist:
+#         return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
+#
+#     # Récupérer les groupes de l'utilisateur connecté (l'utilisateur est authentifié)
+#     user_groups = request.user.groups.values_list('name', flat=True)
+#
+#     if request.method == 'GET':
+#         serializer = ArticleSerializer(article)
+#         return Response({
+#             "article": serializer.data,
+#             "user_groups": list(user_groups),
+#         })
+#
+#     elif request.method == 'PUT':
+#         serializer = ArticleSerializer(article, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#     elif request.method == 'DELETE':
+#         article.delete()
+#         return Response({"message": "Article supprimé avec succès"}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    serializer = UitilisateurSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsValidateur])
 def detail_article(request, pk):
     try:
         article = Article.objects.get(pk=pk)
     except Article.DoesNotExist:
         return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Récupérer les groupes de l'utilisateur connecté (l'utilisateur est authentifié)
-    user_groups = request.user.groups.values_list('name', flat=True)
-
     if request.method == 'GET':
         serializer = ArticleSerializer(article)
-        return Response({
-            "article": serializer.data,
-            "user_groups": list(user_groups),
-        })
+        return Response(serializer.data)
 
     elif request.method == 'PUT':
         serializer = ArticleSerializer(article, data=request.data)
@@ -121,11 +175,5 @@ def detail_article(request, pk):
         article.delete()
         return Response({"message": "Article supprimé avec succès"}, status=status.HTTP_200_OK)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def register(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    \

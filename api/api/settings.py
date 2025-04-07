@@ -157,22 +157,34 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
     )
 }
-
-
 from datetime import timedelta
 
 SIMPLE_JWT = {
     # Durée de vie du token d'accès
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=2),
-    # Durée de vie du token de rafraîchissement
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
+
+# from datetime import timedelta
+# SIMPLE_JWT = {
+#     # Durée de vie du token d'accès
+#     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+#     # Durée de vie du token de rafraîchissement
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+#     # À chaque utilisation d'un refresh token pour obtenir un nouvel access token,
+#     # un nouveau refresh token est également émis.
+#     'ROTATE_REFRESH_TOKENS': True,
+#     # Permet de mettre en liste noire l'ancien refresh token
+#     'BLACKLIST_AFTER_ROTATION': True,
+# }
+
+AUTH_USER_MODEL = 'api_articles.Utilisateur'
