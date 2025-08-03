@@ -26,7 +26,6 @@ from .permission import IsRedacteur, IsValidateur
 def liste_articles(request):
     if request.method == 'GET':
         articles = Article.objects.all().order_by('-date_publication')
-        # Suite de traitement
         # Instanciation de la pagination
         paginator = ArticlePageNumberPagination()
         result_page = paginator.paginate_queryset(articles, request)

@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'api_articles',
     'corsheaders',
-    'drf_yasg'
+    'drf_yasg',
+'rest_framework_simplejwt.token_blacklist',
+
 ]
 
 MIDDLEWARE = [
@@ -84,17 +86,40 @@ WSGI_APPLICATION = 'api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'api_articles',
+#         'USER': 'root',
+#         'PASSWORD': '',
+#         'HOST': 'localhost',  # Serveur de la base de données
+#         'PORT': '3306',       # Port par défaut de MySQL
+#         'OPTIONS': {
+#             'sql_mode': 'STRICT_TRANS_TABLES',
+#         },
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'api_articles',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',  # Serveur de la base de données
-        'PORT': '3306',       # Port par défaut de MySQL
-        'OPTIONS': {
-            'sql_mode': 'STRICT_TRANS_TABLES',
-        },
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'api_articles',     # Nom de votre base de données PostgreSQL
+        'USER': 'postgres',                # Nom d'utilisateur PostgreSQL
+        'PASSWORD': '2212@2212',  # Mot de passe PostgreSQL
+        'HOST': 'localhost',               # Adresse du serveur (souvent 'localhost')
+        'PORT': '5432',                    # Port par défaut de PostgreSQL
+    }
+}
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'nom_de_la_base',
+        'USER': 'nom_utilisateur',  # 'postgres' par défaut
+        'PASSWORD': 'mot_de_passe',
+        'HOST': 'localhost',     # Serveur de la base de données
+        'PORT': '5432',          # Port par défaut de PostgreSQL
     }
 }
 # Configuration globale de Django REST Framework
@@ -168,7 +193,7 @@ from datetime import timedelta
 
 SIMPLE_JWT = {
     # Durée de vie du token d'accès
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
